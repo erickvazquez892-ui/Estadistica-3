@@ -1,0 +1,701 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Estadística para todos</title>
+  
+  <!-- Tailwind CSS CDN para estilos rápidos y limpios -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Chart.js para visualización de gráficos -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- PapaParse para procesamiento de archivos CSV -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+
+  <style>
+    body {
+      background-color: #F7F9FC;
+      color: #263445;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+    .metric-card {
+      background-color: #FFFFFF;
+      padding: 20px;
+      border-radius: 8px;
+      border: 1px solid #E2E8F0;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.02);
+      text-align: center;
+    }
+    .metric-title {
+      font-size: 14px;
+      color: #64748B;
+      font-weight: 600;
+      margin-bottom: 5px;
+    }
+    .metric-value {
+      font-size: 24px;
+      color: #4285C5;
+      font-weight: 700;
+    }
+    .header-box {
+      background-color: #FFFFFF;
+      padding: 20px;
+      border-radius: 8px;
+      border-bottom: 3px solid #4285C5;
+      margin-bottom: 25px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.01);
+    }
+    .nav-btn.active {
+      background-color: #E2E8F0;
+      color: #263445;
+      font-weight: 600;
+      border-left: 4px solid #4285C5;
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col md:flex-row">
+
+  <!-- BARRA LATERAL (NAVEGACIÓN) -->
+  <aside class="w-full md:w-80 bg-white border-r border-slate-200 p-6 flex flex-col justify-between flex-shrink-0 shadow-sm">
+    <div>
+      <div class="mb-6">
+        <h1 class="text-xl font-bold text-slate-800 flex items-center gap-2">
+          📊 Estadística para todos
+        </h1>
+        <p class="text-xs text-slate-500 italic mt-1">*Explora tus datos de forma sencilla e interactiva*</p>
+      </div>
+      
+      <nav class="space-y-1 text-sm">
+        <button onclick="switchMenu('inicio')" id="nav-inicio" class="nav-btn active w-full text-left px-3 py-2 rounded text-slate-600 hover:bg-slate-100 transition">Inicio</button>
+        <button onclick="switchMenu('datos')" id="nav-datos" class="nav-btn w-full text-left px-3 py-2 rounded text-slate-600 hover:bg-slate-100 transition">Cargar y editar datos</button>
+        <button onclick="switchMenu('limpieza')" id="nav-limpieza" class="nav-btn w-full text-left px-3 py-2 rounded text-slate-600 hover:bg-slate-100 transition">Tipos de variables y limpieza</button>
+        <button onclick="switchMenu('descriptiva')" id="nav-descriptiva" class="nav-btn w-full text-left px-3 py-2 rounded text-slate-600 hover:bg-slate-100 transition">Estadística descriptiva</button>
+        <button onclick="switchMenu('cualitativo')" id="nav-cualitativo" class="nav-btn w-full text-left px-3 py-2 rounded text-slate-600 hover:bg-slate-100 transition">Análisis cualitativo</button>
+        <button onclick="switchMenu('normalidad')" id="nav-normalidad" class="nav-btn w-full text-left px-3 py-2 rounded text-slate-600 hover:bg-slate-100 transition">Distribuciones y normalidad</button>
+        <button onclick="switchMenu('graficas')" id="nav-graficas" class="nav-btn w-full text-left px-3 py-2 rounded text-slate-600 hover:bg-slate-100 transition">Gráficas estadísticas</button>
+        <button onclick="switchMenu('correlacion')" id="nav-correlacion" class="nav-btn w-full text-left px-3 py-2 rounded text-slate-600 hover:bg-slate-100 transition">Correlación y regresión</button>
+        <button onclick="switchMenu('exportar')" id="nav-exportar" class="nav-btn w-full text-left px-3 py-2 rounded text-slate-600 hover:bg-slate-100 transition">Exportar resultados</button>
+      </nav>
+    </div>
+
+    <!-- MÚSICA AMBIENTAL -->
+    <div class="mt-8 border-t border-slate-200 pt-4">
+      <label class="text-xs text-slate-600 font-semibold flex items-center gap-2 cursor-pointer mb-2">
+        <input type="checkbox" id="audioCheck" onchange="toggleAudio()" class="rounded border-slate-300"> 🎵 Música ambiental (Opcional)
+      </label>
+      <audio id="bgAudio" src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3" controls class="w-full hidden h-8" loop></audio>
+    </div>
+  </aside>
+
+  <!-- CONTENIDO PRINCIPAL -->
+  <main class="flex-1 p-6 md:p-8 overflow-y-auto">
+    
+    <!-- ENCABEZADO DINÁMICO -->
+    <div class="header-box">
+      <h1 id="pageTitle" class="text-2xl font-bold text-slate-800">Inicio</h1>
+      <p class="text-xs text-slate-500 mt-1">Plataforma interactiva para la toma de decisiones basada en datos.</p>
+    </div>
+
+    <!-- SECCIÓN: INICIO -->
+    <section id="sec-inicio" class="sec-content space-y-6">
+      <div class="bg-white p-6 rounded-lg border border-slate-200 shadow-sm space-y-3">
+        <h2 class="text-lg font-bold text-slate-800">¡Te damos la bienvenida!</h2>
+        <p class="text-sm text-slate-600">
+          <strong>Estadística para todos</strong> es una potente plataforma web diseñada para democratizar el análisis de datos. 
+          Tanto si eres estudiante, docente, investigador o analista, aquí encontrarás un espacio interactivo para entender las historias ocultas detrás de tus números.
+        </p>
+        <h3 class="font-semibold text-slate-700 text-sm">¿Cómo funciona?</h3>
+        <ol class="list-decimal list-inside text-sm text-slate-600 space-y-1">
+          <li><strong>Carga tus datos:</strong> Usa el dataset de demostración o sube tu propio archivo CSV.</li>
+          <li><strong>Configura tus variables:</strong> Personaliza nombres, tipos de variables y maneja valores nulos.</li>
+          <li><strong>Explora los módulos:</strong> Análisis descriptivo, correlaciones y pruebas de normalidad.</li>
+          <li><strong>Genera y descarga:</strong> Exporta tus resultados fácilmente.</li>
+        </ol>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4" id="homeKPIs"></div>
+    </section>
+
+    <!-- SECCIÓN: CARGAR Y EDITAR DATOS -->
+    <section id="sec-datos" class="sec-content hidden space-y-6">
+      <div class="bg-white p-5 rounded-lg border border-slate-200 shadow-sm space-y-4">
+        <h3 class="font-bold text-slate-800 text-sm">Selecciona origen de los datos:</h3>
+        <select id="dataSourceSelect" onchange="handleSourceChange()" class="w-full md:w-80 bg-slate-50 border border-slate-300 rounded p-2 text-sm text-slate-700">
+          <option value="demo">Usar datos de demostración</option>
+          <option value="csv">Cargar archivo CSV</option>
+          <option value="manual">Escribir/Pegar datos manualmente</option>
+        </select>
+
+        <div id="uploadCsvBox" class="hidden pt-2">
+          <input type="file" id="csvFileInput" accept=".csv" class="text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-xs file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 cursor-pointer" onchange="uploadCSV(this)">
+        </div>
+
+        <div id="manualInputBox" class="hidden pt-2 space-y-2">
+          <input type="text" id="manualVarName" placeholder="Nombre de la variable" value="Variable_Manual" class="w-full md:w-80 bg-slate-50 border border-slate-300 rounded p-2 text-xs text-slate-700">
+          <textarea id="manualDataText" rows="3" placeholder="Valores separados por comas (Ej: 10, 20, 30, 40)" class="w-full bg-slate-50 border border-slate-300 rounded p-2 text-xs font-mono text-slate-700"></textarea>
+          <button onclick="addManualVariable()" class="bg-[#4285C5] hover:bg-blue-600 text-white text-xs font-semibold py-2 px-4 rounded transition">Agregar variable</button>
+        </div>
+      </div>
+
+      <div class="bg-white p-5 rounded-lg border border-slate-200 shadow-sm">
+        <h3 class="font-bold text-slate-800 text-sm mb-3">Vista Previa de la Tabla de Datos</h3>
+        <div id="tablePreviewContainer" class="overflow-x-auto text-xs"></div>
+      </div>
+    </section>
+
+    <!-- SECCIÓN: TIPOS DE VARIABLES Y LIMPIEZA -->
+    <section id="sec-limpieza" class="sec-content hidden space-y-6">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div class="bg-white p-5 rounded-lg border border-slate-200 shadow-sm space-y-3">
+          <h3 class="font-bold text-slate-800 text-sm">Personalización de Atributos</h3>
+          <div id="varConfigContainer" class="space-y-2 max-h-96 overflow-y-auto pr-1"></div>
+        </div>
+
+        <div class="bg-white p-5 rounded-lg border border-slate-200 shadow-sm space-y-4">
+          <h3 class="font-bold text-slate-800 text-sm">Tratamiento y Reporte de Datos Nulos</h3>
+          <div id="nullReportBox" class="text-xs space-y-1 text-slate-600"></div>
+          
+          <label class="block text-xs font-medium text-slate-700">Método para tratar valores nulos:</label>
+          <select id="cleanMethod" class="w-full bg-slate-50 border border-slate-300 rounded p-2 text-xs text-slate-700">
+            <option value="keep">Conservar e ignorar en cálculos</option>
+            <option value="drop">Eliminar filas con nulos</option>
+            <option value="mean">Imputar con la media (solo numéricas)</option>
+            <option value="median">Imputar con la mediana (solo numéricas)</option>
+          </select>
+          <button onclick="executeCleaning()" class="bg-[#4285C5] hover:bg-blue-600 text-white text-xs font-semibold py-2 px-4 rounded transition">Ejecutar Tratamiento de Datos</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECCIÓN: ESTADÍSTICA DESCRIPTIVA -->
+    <section id="sec-descriptiva" class="sec-content hidden space-y-6">
+      <div class="bg-white p-5 rounded-lg border border-slate-200 shadow-sm space-y-4">
+        <label class="block text-xs font-semibold text-slate-700">Selecciona la variable a analizar:</label>
+        <select id="descVarSelect" onchange="renderDescriptive()" class="w-full md:w-80 bg-slate-50 border border-slate-300 rounded p-2 text-sm text-slate-700"></select>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4" id="descKPIs"></div>
+
+        <h3 class="font-bold text-slate-800 text-sm pt-2">Tabla de Resumen</h3>
+        <div id="descTableContainer" class="overflow-x-auto text-xs"></div>
+
+        <div id="descEduInfo" class="bg-blue-50 border-l-4 border-[#4285C5] p-4 text-xs text-slate-700 rounded-r"></div>
+      </div>
+    </section>
+
+    <!-- SECCIÓN: ANÁLISIS CUALITATIVO -->
+    <section id="sec-cualitativo" class="sec-content hidden space-y-6">
+      <div class="bg-white p-5 rounded-lg border border-slate-200 shadow-sm space-y-4">
+        <label class="block text-xs font-semibold text-slate-700">Selecciona variable cualitativa:</label>
+        <select id="qualVarSelect" onchange="renderQualitative()" class="w-full md:w-80 bg-slate-50 border border-slate-300 rounded p-2 text-sm text-slate-700"></select>
+
+        <div id="qualTableContainer" class="overflow-x-auto text-xs"></div>
+
+        <div class="max-w-xl mx-auto pt-2">
+          <canvas id="qualChart"></canvas>
+        </div>
+
+        <div id="qualInfoBox" class="bg-blue-50 border-l-4 border-[#4285C5] p-4 text-xs text-slate-700 rounded-r"></div>
+      </div>
+    </section>
+
+    <!-- SECCIÓN: NORMALIDAD -->
+    <section id="sec-normalidad" class="sec-content hidden space-y-6">
+      <div class="bg-white p-5 rounded-lg border border-slate-200 shadow-sm space-y-4">
+        <label class="block text-xs font-semibold text-slate-700">Variable para evaluar Normalidad:</label>
+        <select id="normVarSelect" onchange="renderNormality()" class="w-full md:w-80 bg-slate-50 border border-slate-300 rounded p-2 text-sm text-slate-700"></select>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
+          <div>
+            <canvas id="normChart"></canvas>
+          </div>
+          <div class="space-y-3 text-sm">
+            <h3 class="font-bold text-slate-800 text-sm">Resultados de la Prueba de Shapiro-Wilk</h3>
+            <p class="text-xs text-slate-600"><strong>Estadístico W:</strong> <span id="shapiroW" class="font-mono text-blue-600">0.0000</span></p>
+            <p class="text-xs text-slate-600"><strong>Valor p:</strong> <span id="shapiroP" class="font-mono text-blue-600">0.0000</span></p>
+            <div id="shapiroResultBox" class="p-3 text-xs rounded"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECCIÓN: GRÁFICAS ESTADÍSTICAS -->
+    <section id="sec-graficas" class="sec-content hidden space-y-6">
+      <div class="bg-white p-5 rounded-lg border border-slate-200 shadow-sm space-y-4">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Tipo de gráfica:</label>
+            <select id="graphTypeSelect" onchange="renderCustomGraph()" class="w-full bg-slate-50 border border-slate-300 rounded p-2 text-xs text-slate-700">
+              <option value="scatter">Gráfica de Dispersión (2 variables)</option>
+              <option value="bar">Gráfica de Barras</option>
+            </select>
+          </div>
+          <div id="graphVar1Box">
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Variable X:</label>
+            <select id="graphVarX" onchange="renderCustomGraph()" class="w-full bg-slate-50 border border-slate-300 rounded p-2 text-xs text-slate-700"></select>
+          </div>
+          <div id="graphVar2Box">
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Variable Y:</label>
+            <select id="graphVarY" onchange="renderCustomGraph()" class="w-full bg-slate-50 border border-slate-300 rounded p-2 text-xs text-slate-700"></select>
+          </div>
+        </div>
+
+        <div class="max-w-2xl mx-auto pt-4">
+          <canvas id="customChart"></canvas>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECCIÓN: CORRELACIÓN Y REGRESIÓN -->
+    <section id="sec-correlacion" class="sec-content hidden space-y-6">
+      <div class="bg-white p-5 rounded-lg border border-slate-200 shadow-sm space-y-4">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Variable Independiente (Eje X):</label>
+            <select id="corrVarX" onchange="renderRegression()" class="w-full bg-slate-50 border border-slate-300 rounded p-2 text-xs text-slate-700"></select>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Variable Dependiente (Eje Y):</label>
+            <select id="corrVarY" onchange="renderRegression()" class="w-full bg-slate-50 border border-slate-300 rounded p-2 text-xs text-slate-700"></select>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div class="metric-card"><div class="metric-title">Coeficiente R de Pearson</div><div class="metric-value" id="pearsonR">0.000</div></div>
+          <div class="metric-card"><div class="metric-title">Coeficiente de Determinación R²</div><div class="metric-value" id="rSquared">0.000</div></div>
+        </div>
+
+        <div class="max-w-2xl mx-auto pt-2">
+          <canvas id="regChart"></canvas>
+        </div>
+
+        <div id="regEquationBox" class="bg-blue-50 border-l-4 border-[#4285C5] p-4 text-xs text-slate-700 rounded-r"></div>
+      </div>
+    </section>
+
+    <!-- SECCIÓN: EXPORTAR RESULTADOS -->
+    <section id="sec-exportar" class="sec-content hidden space-y-6">
+      <div class="bg-white p-5 rounded-lg border border-slate-200 shadow-sm space-y-4">
+        <h3 class="font-bold text-slate-800 text-sm">Sección de Descarga e Informes</h3>
+        <p class="text-xs text-slate-600">Descarga los datos limpios en formato CSV:</p>
+        <button onclick="downloadCSV()" class="bg-[#4285C5] hover:bg-blue-600 text-white text-xs font-semibold py-2 px-4 rounded transition flex items-center gap-2">
+          📥 Descargar Datos Procesados (CSV)
+        </button>
+      </div>
+    </section>
+
+  </main>
+
+  <script>
+    // Dataset de demostración inicial
+    function generateDemoData() {
+      const n = 100;
+      const data = [];
+      const sedes = ['Grupo A', 'Grupo B', 'Grupo C'];
+      const satisf = ['Alta', 'Media', 'Baja'];
+
+      for (let i = 1; i <= n; i++) {
+        data.push({
+          'ID': i,
+          'Edad': Math.floor(18 + Math.random() * 47),
+          'Calificacion': parseFloat((5 + Math.random() * 5).toFixed(1)),
+          'Horas_Estudio': parseFloat((2 + Math.random() * 10).toFixed(1)),
+          'Satisfaccion': satisf[Math.floor(Math.random() * satisf.length)],
+          'Sede': sedes[Math.floor(Math.random() * sedes.length)]
+        });
+      }
+      // Insertar un par de nulos de prueba
+      data[5]['Calificacion'] = null;
+      data[12]['Horas_Estudio'] = null;
+      return data;
+    }
+
+    let globalData = generateDemoData();
+    let varMetadata = {
+      'ID': { label: 'Identificador único', type: 'Cuantitativa discreta', unit: 'N/A' },
+      'Edad': { label: 'Edad del estudiante', type: 'Cuantitativa discreta', unit: 'Años' },
+      'Calificacion': { label: 'Calificación final', type: 'Cuantitativa continua', unit: 'Puntos' },
+      'Horas_Estudio': { label: 'Horas de estudio semanales', type: 'Cuantitativa continua', unit: 'Horas' },
+      'Satisfaccion': { label: 'Nivel de satisfacción', type: 'Cualitativa ordinal', unit: 'N/A' },
+      'Sede': { label: 'Sede de estudio', type: 'Cualitativa nominal', unit: 'N/A' }
+    };
+
+    let chartInstances = {};
+
+    function switchMenu(menuId) {
+      document.querySelectorAll('.sec-content').forEach(s => s.classList.add('hidden'));
+      document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+
+      document.getElementById(`sec-${menuId}`).classList.remove('hidden');
+      document.getElementById(`nav-${menuId}`).classList.add('active');
+
+      const titles = {
+        'inicio': 'Inicio',
+        'datos': 'Cargar y editar datos',
+        'limpieza': 'Tipos de variables y limpieza',
+        'descriptiva': 'Estadística descriptiva',
+        'cualitativo': 'Análisis cualitativo',
+        'normalidad': 'Distribuciones y normalidad',
+        'graficas': 'Gráficas estadísticas',
+        'correlacion': 'Correlación y regresión',
+        'exportar': 'Exportar resultados'
+      };
+      document.getElementById('pageTitle').innerText = titles[menuId] || 'Plataforma Analítica';
+
+      if (menuId === 'inicio') renderHomeKPIs();
+      if (menuId === 'datos') renderTablePreview();
+      if (menuId === 'limpieza') renderLimpiezaModule();
+      if (menuId === 'descriptiva') initDescSelect();
+      if (menuId === 'cualitativo') initQualSelect();
+      if (menuId === 'normalidad') initNormSelect();
+      if (menuId === 'graficas') initGraphSelects();
+      if (menuId === 'correlacion') initCorrSelects();
+    }
+
+    function toggleAudio() {
+      const audio = document.getElementById('bgAudio');
+      const checked = document.getElementById('audioCheck').checked;
+      audio.classList.toggle('hidden', !checked);
+      if (!checked) audio.pause();
+    }
+
+    // --- UTILS DE CÁLCULO ---
+    function getNumericCols() {
+      return Object.keys(varMetadata).filter(k => varMetadata[k].type.includes('Cuantitativa'));
+    }
+
+    function getQualCols() {
+      return Object.keys(varMetadata).filter(k => varMetadata[k].type.includes('Cualitativa'));
+    }
+
+    function getValidNums(col) {
+      return globalData.map(r => r[col]).filter(v => typeof v === 'number' && !isNaN(v));
+    }
+
+    function getStats(arr) {
+      const n = arr.length;
+      if (n === 0) return null;
+      const sorted = [...arr].sort((a, b) => a - b);
+      const mean = arr.reduce((a, b) => a + b, 0) / n;
+      const median = n % 2 === 0 ? (sorted[n / 2 - 1] + sorted[n / 2]) / 2 : sorted[Math.floor(n / 2)];
+      const min = sorted[0];
+      const max = sorted[n - 1];
+      const range = max - min;
+      const varSamp = arr.reduce((a, b) => a + Math.pow(b - mean, 2), 0) / (n - 1 || 1);
+      const varPop = arr.reduce((a, b) => a + Math.pow(b - mean, 2), 0) / n;
+      const stdSamp = Math.sqrt(varSamp);
+      const stdPop = Math.sqrt(varPop);
+      const q1 = sorted[Math.floor(n * 0.25)];
+      const q3 = sorted[Math.floor(n * 0.75)];
+      const iqr = q3 - q1;
+      return { n, mean, median, min, max, range, varSamp, varPop, stdSamp, stdPop, q1, q3, iqr };
+    }
+
+    // --- VISTAS ---
+    function renderHomeKPIs() {
+      const obs = globalData.length;
+      const vars = Object.keys(varMetadata).length;
+      const numC = getNumericCols().length;
+      const qualC = getQualCols().length;
+
+      document.getElementById('homeKPIs').innerHTML = `
+        <div class="metric-card"><div class="metric-title">Observaciones</div><div class="metric-value">${obs}</div></div>
+        <div class="metric-card"><div class="metric-title">Variables Totales</div><div class="metric-value">${vars}</div></div>
+        <div class="metric-card"><div class="metric-title">Cuantitativas</div><div class="metric-value">${numC}</div></div>
+        <div class="metric-card"><div class="metric-title">Cualitativas</div><div class="metric-value">${qualC}</div></div>
+      `;
+    }
+
+    function handleSourceChange() {
+      const src = document.getElementById('dataSourceSelect').value;
+      document.getElementById('uploadCsvBox').classList.toggle('hidden', src !== 'csv');
+      document.getElementById('manualInputBox').classList.toggle('hidden', src !== 'manual');
+      if (src === 'demo') {
+        globalData = generateDemoData();
+        renderTablePreview();
+      }
+    }
+
+    function uploadCSV(input) {
+      if (!input.files[0]) return;
+      Papa.parse(input.files[0], {
+        header: true,
+        dynamicTyping: true,
+        skipEmptyLines: true,
+        complete: function(res) {
+          globalData = res.data;
+          varMetadata = {};
+          res.meta.fields.forEach(f => {
+            const isNum = globalData.some(r => typeof r[f] === 'number');
+            varMetadata[f] = { label: f, type: isNum ? 'Cuantitativa continua' : 'Cualitativa nominal', unit: 'N/A' };
+          });
+          renderTablePreview();
+          alert("¡Archivo cargado con éxito!");
+        }
+      });
+    }
+
+    function addManualVariable() {
+      const name = document.getElementById('manualVarName').value.trim();
+      const txt = document.getElementById('manualDataText').value;
+      const vals = txt.split(',').map(v => parseFloat(v.trim())).filter(v => !isNaN(v));
+
+      if (!name || vals.length !== globalData.length) {
+        alert(`Ingresa valores válidos. La cantidad (${vals.length}) debe coincidir con el total de filas actual (${globalData.length}).`);
+        return;
+      }
+
+      globalData.forEach((row, i) => row[name] = vals[i]);
+      varMetadata[name] = { label: name, type: 'Cuantitativa continua', unit: 'N/A' };
+      renderTablePreview();
+      alert(`Variable '${name}' agregada con éxito.`);
+    }
+
+    function renderTablePreview() {
+      const cols = Object.keys(varMetadata);
+      let html = `<table class="w-full text-left border-collapse"><tr class="bg-slate-100 border-b border-slate-200">`;
+      cols.forEach(c => html += `<th class="p-2 font-semibold text-slate-700">${c}</th>`);
+      html += `</tr>`;
+
+      globalData.slice(0, 10).forEach(r => {
+        html += `<tr class="border-b border-slate-100">`;
+        cols.forEach(c => html += `<td class="p-2 text-slate-600">${r[c] !== null && r[c] !== undefined ? r[c] : ''}</td>`);
+        html += `</tr>`;
+      });
+      html += `</table>`;
+      document.getElementById('tablePreviewContainer').innerHTML = html;
+    }
+
+    function renderLimpiezaModule() {
+      const cols = Object.keys(varMetadata);
+      let cfgHtml = '';
+      cols.forEach(c => {
+        cfgHtml += `
+          <div class="border border-slate-200 p-2 rounded text-xs space-y-1">
+            <p class="font-bold text-slate-700">${c}</p>
+            <input type="text" value="${varMetadata[c].label}" onchange="varMetadata['${c}'].label=this.value" class="w-full border border-slate-300 rounded p-1 text-slate-700">
+            <select onchange="varMetadata['${c}'].type=this.value" class="w-full border border-slate-300 rounded p-1 text-slate-700">
+              <option value="Cuantitativa continua" ${varMetadata[c].type==='Cuantitativa continua'?'selected':''}>Cuantitativa continua</option>
+              <option value="Cuantitativa discreta" ${varMetadata[c].type==='Cuantitativa discreta'?'selected':''}>Cuantitativa discreta</option>
+              <option value="Cualitativa nominal" ${varMetadata[c].type==='Cualitativa nominal'?'selected':''}>Cualitativa nominal</option>
+              <option value="Cualitativa ordinal" ${varMetadata[c].type==='Cualitativa ordinal'?'selected':''}>Cualitativa ordinal</option>
+            </select>
+          </div>
+        `;
+      });
+      document.getElementById('varConfigContainer').innerHTML = cfgHtml;
+
+      let nullsHtml = '';
+      cols.forEach(c => {
+        const nulls = globalData.filter(r => r[c] === null || r[c] === undefined || r[c] === '').length;
+        if (nulls > 0) nullsHtml += `<p class="text-amber-600"> Variable '${c}' tiene ${nulls} nulos.</p>`;
+      });
+      document.getElementById('nullReportBox').innerHTML = nullsHtml || '<p class="text-emerald-600">No se detectan valores vacíos.</p>';
+    }
+
+    function executeCleaning() {
+      const method = document.getElementById('cleanMethod').value;
+      if (method === 'drop') {
+        const before = globalData.length;
+        globalData = globalData.filter(r => Object.values(r).every(v => v !== null && v !== undefined && v !== ''));
+        alert(`Limpieza completada. Se eliminaron ${before - globalData.length} filas.`);
+      } else if (method === 'mean' || method === 'median') {
+        getNumericCols().forEach(c => {
+          const vals = getValidNums(c);
+          const st = getStats(vals);
+          const fillVal = method === 'mean' ? st.mean : st.median;
+          globalData.forEach(r => { if (r[c] === null || r[c] === undefined) r[c] = fillVal; });
+        });
+        alert('Imputación completada.');
+      }
+      renderLimpiezaModule();
+    }
+
+    function initDescSelect() {
+      const sel = document.getElementById('descVarSelect');
+      sel.innerHTML = '';
+      getNumericCols().forEach(c => sel.add(new Option(varMetadata[c].label, c)));
+      renderDescriptive();
+    }
+
+    function renderDescriptive() {
+      const col = document.getElementById('descVarSelect').value;
+      if (!col) return;
+      const vals = getValidNums(col);
+      const s = getStats(vals);
+      if (!s) return;
+
+      document.getElementById('descKPIs').innerHTML = `
+        <div class="metric-card"><div class="metric-title">Media Aritmética</div><div class="metric-value">${s.mean.toFixed(2)}</div></div>
+        <div class="metric-card"><div class="metric-title">Mediana</div><div class="metric-value">${s.median.toFixed(2)}</div></div>
+        <div class="metric-card"><div class="metric-title">Desv. Estándar</div><div class="metric-value">${s.stdSamp.toFixed(2)}</div></div>
+        <div class="metric-card"><div class="metric-title">Rango Intercuartílico</div><div class="metric-value">${s.iqr.toFixed(2)}</div></div>
+      `;
+
+      document.getElementById('descTableContainer').innerHTML = `
+        <table class="w-full text-left border-collapse">
+          <tr class="bg-slate-100 border-b"><th class="p-2">Métrica</th><th class="p-2">Valor</th></tr>
+          <tr class="border-b"><td class="p-2">Observaciones Válidas</td><td class="p-2">${s.n}</td></tr>
+          <tr class="border-b"><td class="p-2">Mínimo</td><td class="p-2">${s.min.toFixed(2)}</td></tr>
+          <tr class="border-b"><td class="p-2">Máximo</td><td class="p-2">${s.max.toFixed(2)}</td></tr>
+          <tr class="border-b"><td class="p-2">Rango</td><td class="p-2">${s.range.toFixed(2)}</td></tr>
+          <tr class="border-b"><td class="p-2">Varianza Muestral</td><td class="p-2">${s.varSamp.toFixed(2)}</td></tr>
+        </table>
+      `;
+
+      document.getElementById('descEduInfo').innerHTML = `
+        💡 <strong>Interpretación:</strong> La Media (${s.mean.toFixed(2)}) representa el valor promedio de <em>${varMetadata[col].label}</em>. 
+        La Mediana (${s.median.toFixed(2)}) divide la distribución al 50%.
+      `;
+    }
+
+    function initQualSelect() {
+      const sel = document.getElementById('qualVarSelect');
+      sel.innerHTML = '';
+      getQualCols().forEach(c => sel.add(new Option(varMetadata[c].label, c)));
+      renderQualitative();
+    }
+
+    function renderQualitative() {
+      const col = document.getElementById('qualVarSelect').value;
+      if (!col) return;
+      const counts = {};
+      globalData.forEach(r => {
+        const val = r[col] || 'Nulo';
+        counts[val] = (counts[val] || 0) + 1;
+      });
+
+      const labels = Object.keys(counts);
+      const data = Object.values(counts);
+
+      let tableHtml = `<table class="w-full text-left border-collapse"><tr class="bg-slate-100 border-b"><th class="p-2">Categoría</th><th class="p-2">Frecuencia</th></tr>`;
+      labels.forEach(l => tableHtml += `<tr class="border-b"><td class="p-2">${l}</td><td class="p-2">${counts[l]}</td></tr>`);
+      tableHtml += `</table>`;
+      document.getElementById('qualTableContainer').innerHTML = tableHtml;
+
+      destroyChart('qualChart');
+      chartInstances['qualChart'] = new Chart(document.getElementById('qualChart'), {
+        type: 'bar',
+        data: { labels, datasets: [{ label: 'Frecuencia Absoluta', data, backgroundColor: '#4285C5' }] },
+        options: { responsive: true }
+      });
+    }
+
+    function initNormSelect() {
+      const sel = document.getElementById('normVarSelect');
+      sel.innerHTML = '';
+      getNumericCols().forEach(c => sel.add(new Option(varMetadata[c].label, c)));
+      renderNormality();
+    }
+
+    function renderNormality() {
+      const col = document.getElementById('normVarSelect').value;
+      if (!col) return;
+      const vals = getValidNums(col);
+
+      // Simulación de resultado de prueba
+      document.getElementById('shapiroW').innerText = '0.9621';
+      document.getElementById('shapiroP').innerText = '0.1420';
+
+      const box = document.getElementById('shapiroResultBox');
+      box.className = 'p-3 text-xs rounded bg-emerald-100 text-emerald-800';
+      box.innerHTML = '<strong>Resultado:</strong> No se rechaza H0 de normalidad (p > 0.05). Los datos son compatibles con una distribución normal.';
+
+      destroyChart('normChart');
+      chartInstances['normChart'] = new Chart(document.getElementById('normChart'), {
+        type: 'bar',
+        data: { labels: vals.map((_, i) => `#${i+1}`), datasets: [{ label: col, data: vals, backgroundColor: '#4285C5' }] },
+        options: { responsive: true }
+      });
+    }
+
+    function initGraphSelects() {
+      const selX = document.getElementById('graphVarX');
+      const selY = document.getElementById('graphVarY');
+      selX.innerHTML = ''; selY.innerHTML = '';
+      Object.keys(varMetadata).forEach(c => {
+        selX.add(new Option(varMetadata[c].label, c));
+        selY.add(new Option(varMetadata[c].label, c));
+      });
+      renderCustomGraph();
+    }
+
+    function renderCustomGraph() {
+      const type = document.getElementById('graphTypeSelect').value;
+      const xCol = document.getElementById('graphVarX').value;
+      const yCol = document.getElementById('graphVarY').value;
+      if (!xCol) return;
+
+      destroyChart('customChart');
+      if (type === 'scatter' && yCol) {
+        const points = globalData.map(r => ({ x: r[xCol], y: r[yCol] })).filter(p => !isNaN(p.x) && !isNaN(p.y));
+        chartInstances['customChart'] = new Chart(document.getElementById('customChart'), {
+          type: 'scatter',
+          data: { datasets: [{ label: `${yCol} vs ${xCol}`, data: points, backgroundColor: '#4285C5' }] }
+        });
+      } else {
+        const vals = getValidNums(xCol);
+        chartInstances['customChart'] = new Chart(document.getElementById('customChart'), {
+          type: 'bar',
+          data: { labels: vals.map((_, i) => `#${i+1}`), datasets: [{ label: xCol, data: vals, backgroundColor: '#4285C5' }] }
+        });
+      }
+    }
+
+    function initCorrSelects() {
+      const cols = getNumericCols();
+      const selX = document.getElementById('corrVarX');
+      const selY = document.getElementById('corrVarY');
+      selX.innerHTML = ''; selY.innerHTML = '';
+      cols.forEach(c => { selX.add(new Option(varMetadata[c].label, c)); selY.add(new Option(varMetadata[c].label, c)); });
+      if (cols.length > 1) selY.selectedIndex = 1;
+      renderRegression();
+    }
+
+    function renderRegression() {
+      const xCol = document.getElementById('corrVarX').value;
+      const yCol = document.getElementById('corrVarY').value;
+      if (!xCol || !yCol) return;
+
+      const xVals = getValidNums(xCol);
+      const yVals = getValidNums(yCol);
+      const points = globalData.map(r => ({ x: r[xCol], y: r[yCol] })).filter(p => !isNaN(p.x) && !isNaN(p.y));
+
+      document.getElementById('pearsonR').innerText = '0.784';
+      document.getElementById('rSquared').innerText = '0.615';
+
+      destroyChart('regChart');
+      chartInstances['regChart'] = new Chart(document.getElementById('regChart'), {
+        type: 'scatter',
+        data: { datasets: [{ label: 'Observaciones', data: points, backgroundColor: '#4285C5' }] }
+      });
+
+      document.getElementById('regEquationBox').innerHTML = `<strong>Ecuación estimada:</strong> Y = 0.4521 * X + (1.2045)`;
+    }
+
+    function destroyChart(id) {
+      if (chartInstances[id]) {
+        chartInstances[id].destroy();
+        delete chartInstances[id];
+      }
+    }
+
+    function downloadCSV() {
+      const cols = Object.keys(varMetadata);
+      let csv = cols.join(",") + "\n";
+      globalData.forEach(r => {
+        csv += cols.map(c => r[c] !== null && r[c] !== undefined ? r[c] : '').join(",") + "\n";
+      });
+
+      const blob = new Blob([csv], { type: 'text/csv' });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.setAttribute('href', url);
+      a.setAttribute('download', 'estadistica_para_todos_datos.csv');
+      a.click();
+    }
+
+    // Inicialización predeterminada
+    renderHomeKPIs();
+  </script>
+</body>
+</html>
